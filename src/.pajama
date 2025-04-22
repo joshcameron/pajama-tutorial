@@ -1,41 +1,41 @@
-#pajama.build.include('bedding')
-#pajama.build.include('furniture')
-#pajama.build.include('nap')
-#pajama.build.include('sleep')
-
-import pajama.artifact as artifact
 import pajama.cpp as cpp
 import pajama.clang as clang
-import pajama.filesystem as filesystem
 import pajama.libtool as libtool
 import pajama.settings as settings
 
-#cpp.select_compiler('clang.cpp.compiler')
-cpp.select_compiler(
-	'clang.cpp.compiler', 
-	min_version='1.0.0',
-	max_version='100.0.0')
+cpp.select_compiler('clang.cpp.compiler')
+#cpp.select_compiler(
+#	'clang.cpp.compiler', 
+#	min_version='1.0.0',
+#	max_version='100.0.0')
 
-#copied_file = filesystem.copy_file(123, 'directory_name') # should raise an exception
-#copied_file = filesystem.copy_file('a.cpp', 123) # should raise an exception
-#copied_file = filesystem.copy_file('a.cpp', 'directory_name', 123) # should raise an exception
 a_object = cpp.compile_to_object('a.cpp')
 b_object = cpp.compile_to_object('b.cpp', 'b.o')
 
 # TODO Don't require the user to specify the version. Just select the latest automatically.
-libtool.select(
-	min_version='cctools-0.0',
-	max_version='cctools-2000.0')
+libtool.select()
+#libtool.select(
+#	min_version='cctools-0.0',
+#	max_version='cctools-2000.0')
 
 static_lib = None
 dynamic_lib = None
-static_lib = libtool.create_library([a_object, b_object], 'ab', dynamic=False)
-#dynamic_lib = libtool.create_library([a_object, b_object], 'ab')
-settings.set('clang.cpp.flags', '-I/Users/cameroj/Dropbox/Projects/pajama-tutorial')
-settings.set('clang.cpp.flags', '-L/Users/cameroj/Dropbox/Builds/pajama-tutorial/src')
-#settings.set('clang.cpp.flags', '-lab')
-#settings.set('clang.cpp.flags', '-l', static_library)
-# settings.get('clang.cpp.flags')['-l'].append(static_library) # TODO this instead?
+
+want_static_lib = True
+
+if want_static_lib:
+
+    static_lib = libtool.create_library([a_object, b_object], 'ab', dynamic=False)
+
+else:
+
+    dynamic_lib = libtool.create_library([a_object, b_object], 'ab')
+
+current_src_dir = settings.get('build.current_src_dir')
+settings.set('clang.cpp.flags', f'-I{current_src_dir}')
+current_build_dir = settings.get('build.current_build_dir')
+settings.set('clang.cpp.flags', f'-L{current_build_dir}')
+
 # TODO compilation of the executable must depend on the static or dynamic library
 executable = cpp.compile_to_executable(
 	'main.cpp', 
