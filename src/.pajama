@@ -1,27 +1,20 @@
-import pajama.cpp as cpp
-import pajama.clang as clang
-import pajama.libtool as libtool
-import pajama.settings as settings
+from pajama import cpp, libtool, settings
+
+current_src_dir = settings.get('build.current_src_dir')
+settings.set('clang.cpp.flags', f'-I{current_src_dir}')
+current_build_dir = settings.get('build.current_build_dir')
+settings.set('clang.cpp.flags', f'-L{current_build_dir}')
 
 cpp.select_compiler('clang.cpp.compiler')
-#cpp.select_compiler(
-#	'clang.cpp.compiler', 
-#	min_version='1.0.0',
-#	max_version='100.0.0')
 
 a_object = cpp.compile_to_object('a.cpp')
 b_object = cpp.compile_to_object('b.cpp', 'b.o')
 
-# TODO Don't require the user to specify the version. Just select the latest automatically.
-libtool.select()
-#libtool.select(
-#	min_version='cctools-0.0',
-#	max_version='cctools-2000.0')
+# Set to true if you want to link with a static library instead of a dynamic library.
+want_static_lib = True
 
 static_lib = None
 dynamic_lib = None
-
-want_static_lib = True
 
 if want_static_lib:
 
@@ -31,12 +24,7 @@ else:
 
     dynamic_lib = libtool.create_library([a_object, b_object], 'ab')
 
-current_src_dir = settings.get('build.current_src_dir')
-settings.set('clang.cpp.flags', f'-I{current_src_dir}')
-current_build_dir = settings.get('build.current_build_dir')
-settings.set('clang.cpp.flags', f'-L{current_build_dir}')
-
-# TODO compilation of the executable must depend on the static or dynamic library
+# Compile main.cpp and link with the library.
 executable = cpp.compile_to_executable(
 	'main.cpp', 
 	static_lib=static_lib,
